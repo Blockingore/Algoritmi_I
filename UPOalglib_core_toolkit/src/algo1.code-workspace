@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../../Downloads/stack-ex02-postfix_eval/stack-ex02-postfix_eval"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"timer2.h": "c",
+			"sort_private.h": "c",
+			"utility.h": "c"
+		}
+	}
+}
