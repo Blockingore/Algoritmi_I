@@ -138,12 +138,12 @@ void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
     }
 
     void *old_value = NULL;
-    upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_sepchain_list_node_t));
-
-    head->key = ht->key_hash(key, ht->capacity);
+    //upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_sepchain_list_node_t));
+    
+    size_t index = ht->key_hash(key, ht->capacity);/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     upo_ht_sepchain_list_node_t* node = NULL;
-    node = ht->slots[(size_t)head->key].head;
+    node = ht->slots[index].head;
 
 
 
