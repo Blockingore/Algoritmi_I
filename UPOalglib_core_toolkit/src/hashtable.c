@@ -133,14 +133,14 @@ upo_ht_sepchain_list_node_t* createNode(){
 void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
 {
 
-    if (ht == NULL){
+    if (ht == NULL || key == NULL || value == NULL){
             return NULL;
     }
 
     void *old_value = NULL;
     
     size_t index = ht->key_hash(key, ht->capacity);
-    upo_ht_sepchain_list_node_t* node = node = ht->slots[index].head;
+    upo_ht_sepchain_list_node_t* node = ht->slots[index].head;
    
     while( node != NULL && ht->key_cmp(key, node->key) != 0 ){
         node = node->next;
@@ -153,6 +153,7 @@ void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
 
         node->next = ht->slots[index].head;
         ht->slots[index].head = node;
+        ht->size++;
     }
     else{
         old_value = node->value;

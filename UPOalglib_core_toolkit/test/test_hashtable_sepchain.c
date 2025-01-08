@@ -1180,7 +1180,6 @@ void test_hash_funcs()
     /* HT with integer keys and with division method as hash function */
 
     ht = upo_ht_sepchain_create(UPO_HT_SEPCHAIN_DEFAULT_CAPACITY, upo_ht_hash_int_div, int_compare);
-
     assert( ht != NULL );
 
     n = sizeof int_keys/sizeof int_keys[0];
@@ -1215,7 +1214,7 @@ void test_hash_funcs()
     /* Insertion */
     for (i = 0; i < n; ++i)
     {
-        upo_ht_sepchain_put(ht, &int_keys[i], &values[i]);
+        upo_ht_sepchain_put(ht, &int_keys[i], &values[i]); /*segmentation fault*/
     }
 
     /* Search */
