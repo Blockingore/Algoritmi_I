@@ -138,15 +138,10 @@ void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
     }
 
     void *old_value = NULL;
-    //upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_sepchain_list_node_t));
     
-    size_t index = ht->key_hash(key, ht->capacity);/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    upo_ht_sepchain_list_node_t* node = NULL;
-    node = ht->slots[index].head;
-
-
-
+    size_t index = ht->key_hash(key, ht->capacity);
+    upo_ht_sepchain_list_node_t* node = node = ht->slots[index].head;
+   
     while( node != NULL && ht->key_cmp(key, node->key) != 0 ){
         node = node->next;
     }
@@ -156,8 +151,8 @@ void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
         node->key = key;
         node->value = value;
 
-        node->next = ht->slots[(size_t) head->key].head;
-        ht->slots[(size_t) head->key].head = node;
+        node->next = ht->slots[index].head;
+        ht->slots[index].head = node;
     }
     else{
         old_value = node->value;
@@ -170,18 +165,13 @@ void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
 void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value)
 {
     if(ht == NULL) return;
-    //dichiaro un puntatore a un nodo 
-    upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_key_list_node_t));
-
+  
     //nella chiave del nodo metto l'hash key che cerco 
-    head->key = ht->key_hash(key, ht->capacity);
+    size_t index = ht->key_hash(key, ht->capacity);
 
     //dichiaro un altro nodo per scorrere la lista di collisioni
-    upo_ht_sepchain_list_node_t* node = NULL;
-
     //lo faccio puntare alla testa della lista che corrisponde a slot[indice puntato dalla chiave hash di prima] e .head perchè deve puntare alla testa della lista di quello slot
-    node = ht->slots[(size_t)head->key].head;
-
+    upo_ht_sepchain_list_node_t* node = ht->slots[index].head;
 
     //scorro nodo per nodo finche non arrivo a null oppure trovo la chiave che sto cercando
     while(node != NULL && ht->key_cmp(key, node->key) != 0){
@@ -194,9 +184,9 @@ void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value)
         node->value = value;
 
         //faccio puntare il nodo all'attuale testa della lista
-        node->next = ht->slots[(size_t) head->key].head;
+        node->next = ht->slots[index].head;
         //poi dico che la nuova testa della lista è il mio nodo
-        ht->slots[(size_t) head->key].head = node;
+        ht->slots[index].head = node;
         ht->size++;
     }else return;
 }
@@ -206,12 +196,10 @@ void* upo_ht_sepchain_get(const upo_ht_sepchain_t ht, const void *key)
 {
        if(ht == NULL || ht->slots == NULL ||key == NULL) return NULL;
 
-    upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_key_list_node_t));
-    head->key = ht->key_hash(key, ht->capacity);
+    size_t index = ht->key_hash(key, ht->capacity);
     
-    upo_ht_sepchain_list_node_t* n;
-    n = ht->slots[ (size_t)head->key ].head; 
-
+    upo_ht_sepchain_list_node_t* n = ht->slots[index].head;
+    
     while(n != NULL && ht->key_cmp (key, n->key) != 0){
         n = n->next;
     }
@@ -228,12 +216,10 @@ int upo_ht_sepchain_contains(const upo_ht_sepchain_t ht, const void *key)
 {
     if(ht == NULL || ht->slots == NULL) return 0;
 
-    upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_key_list_node_t));
-    head->key = ht->key_hash(key, ht->capacity);
+    size_t index = ht->key_hash(key, ht->capacity);
 
-    upo_ht_key_list_node_t* node = NULL;
-    node = ht->slots[(size_t) head->key].head;
-
+    upo_ht_key_list_node_t* node = ht->slots[index].head;;
+    
     while(node != NULL && ht->key_cmp(key,node->key) != 0){
         node = node->next;
     }
@@ -248,45 +234,13 @@ void upo_ht_sepchain_delete(upo_ht_sepchain_t ht, const void *key, int destroy_d
 {
     if(ht == NULL || key == NULL || ht->slots == NULL) return;
 
-    upo_ht_sepchain_list_node_t* head = malloc(sizeof(upo_ht_key_list_node_t));
-    head->key = ht->key_hash(key, ht->capacity);
-
-    upo_ht_key_list_node_t* node = NULL;
-    node = ht->slots[(size_t) head->key].head;
-
-    upo_ht_key_list_node_t* parent = NULL;
-
-    while(node != NULL && ht->key_cmp(key, node->key) != 0){
-        parent = node;
-        node = node->next;
-    }
-
-    if(node != NULL){
-        if(parent == NULL){
-            ht->slots[(size_t) head->key].head = node->next;
-        }else{
-            parent->next = node->next;
-        }
-        free(node);
-        ht->size--;
-    }
-    return;
-}
-
-/*
-void upo_ht_sepchain_delete(upo_ht_sepchain_t ht, const void *key, int destroy_data)
-{
-    if(ht == NULL || key == NULL || ht->slots == NULL) return;
-
     size_t index = ht->key_hash(key, ht->capacity);
     upo_ht_sepchain_list_node_t* node = ht->slots[index].head;
     upo_ht_sepchain_list_node_t* parent = NULL;
-
     while(node != NULL && ht->key_cmp(key, node->key) != 0){
         parent = node;
         node = node->next;
     }
-
     if(node != NULL){
         if(parent == NULL){
             ht->slots[index].head = node->next;
@@ -294,22 +248,40 @@ void upo_ht_sepchain_delete(upo_ht_sepchain_t ht, const void *key, int destroy_d
             parent->next = node->next;
         }
 
-     
+        if(destroy_data){
+            free(node->key);
+            free(node->value);
+        }
         free(node);
         ht->size--;
     }
 }
-*/
 
 size_t upo_ht_sepchain_size(const upo_ht_sepchain_t ht)
 {
-    return (ht != NULL) ? ht->size : 0;
+    //se l'hashmap non esiste ritorno 0
+    if (ht == NULL) return 0;
+    
+    //dichiaro il dato size e il nodo per scorrere l'hash
+    size_t size = 0;
+    upo_ht_sepchain_list_node_t* node = NULL;
+
+    //con un primo ciclo scorro tutti gli slot
+    for(size_t i = 0; i < ht->capacity; i++){
+        node = ht->slots[i].head;
+    //per ogni slot vado a contare quanti nodi ci sono
+        while(node != NULL){
+            node = node->next;
+            size++;
+        }
+    }
+    return size;
 
 }
 
 int upo_ht_sepchain_is_empty(const upo_ht_sepchain_t ht)
 {
-    return upo_ht_sepchain_size(ht) == 0 ? 1 : 0;
+   return upo_ht_sepchain_size(ht) == 0 ? 1 : 0; 
 }
 
 size_t upo_ht_sepchain_capacity(const upo_ht_sepchain_t ht)
