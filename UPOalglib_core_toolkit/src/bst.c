@@ -707,8 +707,6 @@ void* upo_bst_floor(const upo_bst_t tree, const void* key) {
     return (result != NULL) ? result->key : NULL; // Ritorna la chiave trovata o NULL
 }
 
-
-
 upo_bst_node_t* ceiling(upo_bst_t tree, void* key, upo_bst_node_t* node) {
     if (node == NULL) {
         return NULL; // Nessun nodo valido trovato
@@ -756,6 +754,7 @@ upo_bst_node_t* range(upo_bst_t tree, upo_bst_key_list_t node_list, void* low_ke
         newNodeList->next = NULL;
     }
     return node;
+
 }
 
 upo_bst_key_list_t upo_bst_keys_range(const upo_bst_t tree, const void *low_key, const void *high_key)
@@ -791,7 +790,7 @@ upo_bst_key_list_t upo_bst_keys_range(const upo_bst_t tree, const void *low_key,
 
 upo_bst_key_list_t upo_bst_keys(const upo_bst_t tree)
 {
-printf("\ndiocane\n");
+
 }
 
 int upo_bst_is_bst(const upo_bst_t tree, const void *min_key, const void *max_key)
