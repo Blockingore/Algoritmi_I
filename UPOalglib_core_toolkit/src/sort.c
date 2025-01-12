@@ -113,104 +113,48 @@ void upo_merge_sort(void *base, size_t n, size_t size, upo_sort_comparator_t cmp
 
 }
 
+size_t upo_partition(void* base,size_t size,size_t lo,size_t hi,upo_sort_comparator_t cmp){
+    unsigned char* ptb = base;
+    size_t p = lo, i=lo, j=hi+1;
+
+    while(1){
+        do{
+            i++;
+        }while((i<hi) && (cmp(ptb + i * size,ptb + p * size) < 0) );
+    
+        do{
+            j--;
+        }while((j>lo) && (cmp(ptb + j * size,ptb + p * size) > 0) );
+    
+        if(i >= j){
+            break;
+        }
+        upo_swap(ptb + i * size, ptb + j * size, size);
+    }
+    upo_swap(ptb + p * size, ptb + j * size, size);
+    return j;
+}
+
+
+void upo_quick_sortRec(void* base, size_t size, size_t lo, size_t hi, upo_sort_comparator_t cmp){
+    //caso base
+    if (lo >= hi) return;
+
+    size_t j = upo_partition(base, size, lo, hi, cmp);
+
+    if(j > 0){
+        upo_quick_sortRec(base, size, lo, j-1, cmp);
+    }
+    upo_quick_sortRec(base, size, j+1, hi, cmp);
+}
+
+
+
+
 
 void upo_quick_sort(void *base, size_t n, size_t size, upo_sort_comparator_t cmp)
 {
-      // da fare 
+    if(base != NULL)
+        upo_quick_sortRec(base, size, 0, n-1, cmp);      
 }
-
-
-
-/*
-// Funzione ausiliaria per la fusione
-void upo_merge(void *base, size_t lo, size_t mid, size_t hi, size_t size, void *temp, upo_sort_comparator_t cmp) {
-
-    // lo = 0
-    // mid = 0
-    // hi = 1
-
-    size_t i = lo; // i punta alla parte sinistra dell'array 
-    size_t j = mid + 1; // j punta alla parte destra dell'array 
-    size_t k = 0; //indice dell'array finale
-
-    // Copia temporanea dei dati nell'array temp
-    memcpy(temp, (unsigned char *)base + lo * size, (hi - lo + 1) * size); 
-    //memcpy(array_temporaneo,
-      //          puntatore al primo carattere di array_da_copiare,
-         //       numero di elementi dell'array);
-    
-
-
-    // ciclo finchè ho elementi da guardare
-    while (i <= mid && j <= hi) { 
-        
-        //controllo il primo elemento di sinistra (i)  con il primo elemento di destra (j);
-        if (cmp((unsigned char *)temp + (i - lo) * size, (unsigned char *)temp + (j - lo) * size) <= 0) { 
-
-            // se è piu piccolo allora lo copio come elemento in base[k]
-            memcpy((unsigned char *)base + (k + lo) * size, (unsigned char *)temp + (i - lo) * size, size);
-            i++;
-
-        } else {
-            
-            // altrimenti copio l'elemento di destra come elemento in base[k]
-            memcpy((unsigned char *)base + (k + lo) * size, (unsigned char *)temp + (j - lo) * size, size);
-            j++;
-        }
-        k++;
-    }
-
-    // Copia elementi rimanenti
-    while (i <= mid) {
-        memcpy((unsigned char *)base + (k + lo) * size, (unsigned char *)temp + (i - lo) * size, size);
-        i++;
-        k++;
-    }
-
-    while (j <= hi) {
-        memcpy((unsigned char *)base + (k + lo) * size, (unsigned char *)temp + (j - lo) * size, size);
-        j++;
-        k++;
-    }
-}
-
-// Funzione ricorsiva per Merge Sort
-void upo_merge_sort_rec(void *base, size_t lo, size_t hi, size_t size, void *temp, upo_sort_comparator_t cmp) { 
-    if (lo >= hi)
-        return;
-
-    size_t mid = (lo + hi) / 2;
-
-    // Chiamate ricorsive per le due metà
-    upo_merge_sort_rec(base, lo, mid, size, temp, cmp);
-    upo_merge_sort_rec(base, mid + 1, hi, size, temp, cmp);
-
-    // Fusione delle due metà
-    upo_merge(base, lo, mid, hi, size, temp, cmp);
-}
-
-// Funzione principale
-void upo_merge_sort(void *base, size_t n, size_t size, upo_sort_comparator_t cmp) {
-    if (n < 2) return; // Nessun elemento da ordinare o un solo elemento
-
-    // Array temporaneo per la fusione
-    void *temp = malloc(n * size);
-    if (temp == NULL) return; // Controllo allocazione memoria
-
-    // Chiamata alla funzione ricorsiva
-    upo_merge_sort_rec(base, 0, n - 1, size, temp, cmp);
-
-    // Libera la memoria temporanea
-    free(temp);
-
-
-    for(size_t k = 0; k < n-1; k++ ){
-        printf("%ld ", *(int*) stampa + (k*size));
-    }
-        printf("\n\nHO FINITO IL MERGE\n\n");
-
-}
-
-*/
-
 

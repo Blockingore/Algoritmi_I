@@ -88,7 +88,6 @@ upo_bst_node_t* nodeCreate(void* key,void* value){
 }
 
 upo_bst_node_t* putImpl(upo_bst_t tree,void* key, void* value,void* vOld,upo_bst_node_t* node){
-    vOld = NULL;
 
     if(node == NULL){
         return nodeCreate(key, value);
@@ -641,38 +640,6 @@ void upo_bst_delete_max(upo_bst_t tree, int destroy_data)
     upo_bst_delete(tree, upo_bst_max(tree) , destroy_data);    
     return;
 }
-/*
-upo_bst_node_t* floor(upo_bst_t tree ,void* key,upo_bst_node_t* node){
-    
-    if(node == NULL) {
-    printf("\n-------------------------------\n");
-    return NULL;
-    }
-
-    
-    if(tree->key_cmp(key, node->key) < 0){
-        node = floor(tree, key, node->left);
-    }else if(tree->key_cmp(key, node->key) > 0){
-        node = floor(tree, key, node->right);
-        if(node != NULL)
-            return node;
-        }else{
-            return node;
-    }
-}
-
-// restituisce la più grande chiave <= k
-void* upo_bst_floor(const upo_bst_t tree, const void *key)
-{
-    if(upo_bst_is_empty(tree)) return NULL;
-    
-    if(tree->key_cmp(key, tree->root->key) <= 0)
-            return floor(tree,key, tree->root)->key;
-    else{
-        return NULL;
-    }
-}
-*/
 
 upo_bst_node_t* floor(upo_bst_t tree, void* key, upo_bst_node_t* node) {
     
@@ -737,68 +704,95 @@ void* upo_bst_ceiling(const upo_bst_t tree, const void* key) {
     return (result != NULL) ? result->key : NULL; // Ritorna la chiave trovata o NULL
 }
 
-upo_bst_node_t* range(upo_bst_t tree, upo_bst_key_list_t node_list, void* low_key, void* high_key, upo_bst_node_t* node){
+void range(upo_bst_t tree, upo_bst_key_list_t* node_list, void* low_key, void* high_key, upo_bst_node_t* node){
     
-    if(node == NULL) return NULL;
+    if(node == NULL ) return;
 
-    if (tree->key_cmp(node->key, low_key) < 0){
-        node =  range(tree, node_list, low_key, high_key, node->right);
+    if (tree->key_cmp(low_key, node->key) < 0){
+        range(tree, node_list, low_key, high_key, node->left);
     }
-    else if( tree->key_cmp(node->key, high_key) > 0 ){
-        node =  range(tree, node_list, low_key, high_key, node->left);
-    }
-    else if(tree->key_cmp(low_key, node->key) <= 0 && tree->key_cmp(high_key, node->key) >= 0 ){
+    
+    if(tree->key_cmp(low_key, node->key) <= 0 && tree->key_cmp(high_key, node->key) >= 0 ){
         upo_bst_key_list_t newNodeList = malloc(sizeof(upo_bst_key_list_t));
         newNodeList->key = node->key;
-        node_list->next = newNodeList;
-        newNodeList->next = NULL;
+        newNodeList->next = *node_list;
+        *node_list = newNodeList;
     }
-    return node;
 
+    if(tree->key_cmp(high_key, node->key) > 0 ){
+       range(tree, node_list, low_key, high_key, node->right);
+    }
 }
 
 upo_bst_key_list_t upo_bst_keys_range(const upo_bst_t tree, const void *low_key, const void *high_key)
 {
     if(upo_bst_is_empty(tree)) return NULL;
     if(low_key == NULL || high_key == NULL) return NULL;
-        printf("\n---------------- valore_lista: ------------------\n" );
 
     //creo la testa della lista
-    upo_bst_key_list_t head = malloc(sizeof(upo_bst_key_list_t));
-    head->key = low_key;
-    head->next = NULL;
-    
-    tree->root = range(tree, head, low_key, high_key, tree->root);
-
-    //creo la coda
-    upo_bst_key_list_t tail = malloc(sizeof(upo_bst_key_list_t));
-    tail->key = high_key;
-    tail->next = NULL;
-
-     upo_bst_key_list_t x = head;
-
-    while (x->next != NULL )
-    {
-        x = x->next;
-    }
-
-    x->next = tail;
+    upo_bst_key_list_t head = NULL;
+    range(tree, &head, low_key, high_key, tree->root);
 
     return head;
+}
+
+
+
+void keys_impl(upo_bst_t tree, upo_bst_key_list_t* list, upo_bst_node_t* node){
+
+    if (node == NULL) return;
+
+    keys_impl(tree, list, node->left);
+
+    upo_bst_key_list_t nodeList = malloc(sizeof(upo_bst_key_list_t));
+
+    nodeList->key = node->key;
+
+    nodeList->next = *list;
+
+    *list = nodeList;
+
+    keys_impl(tree, list, node->right);
 
 }
+
 
 upo_bst_key_list_t upo_bst_keys(const upo_bst_t tree)
 {
+    if(upo_bst_is_empty(tree)) return NULL;
+
+    upo_bst_key_list_t head = NULL;
+
+    keys_impl( tree, &head, tree->root );
+    
+    return head; 
 
 }
 
+
+int bst_impl(const upo_bst_t tree, const void *min_key, const void *max_key, upo_bst_node_t* node){
+   
+    if(node != NULL){
+
+
+    bst_impl(tree, node->left, node->key, node->left);
+
+    if(tree->key_cmp(node->key, min_key) < 0 || tree->key_cmp(node->key, max_key) > 0 ){
+       return 0; 
+    }
+    return bst_impl(tree, node->key, max_key, node->right) && bst_impl(tree, min_key, node->key, node->right);
+    
+    } 
+
+    return 1;
+}
+
+
 int upo_bst_is_bst(const upo_bst_t tree, const void *min_key, const void *max_key)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+    if(upo_bst_is_empty(tree)) return 0;
+
+    return bst_impl(tree, min_key, max_key, tree);
 }
 
 

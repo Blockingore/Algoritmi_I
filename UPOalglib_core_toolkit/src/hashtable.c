@@ -305,12 +305,9 @@ upo_ht_hasher_t upo_ht_sepchain_get_hasher(const upo_ht_sepchain_t ht)
     return ht->key_hash;
 }
 
-
 /*** EXERCISE #1 - END of HASH TABLE with SEPARATE CHAINING ***/
 
-
 /*** EXERCISE #2 - BEGIN of HASH TABLE with LINEAR PROBING ***/
-
 
 upo_ht_linprob_t upo_ht_linprob_create(size_t m, upo_ht_hasher_t key_hash, upo_ht_comparator_t key_cmp)
 {
@@ -400,10 +397,21 @@ void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value)
 {
     void *old_value = NULL;
 
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+    //controllo se c'è abbastanza spazio nell'hashmap
+    if( upo_ht_linprob_load_factor(ht) >=  0.5 ){
+        upo_ht_linprob_resize(ht, ht->capacity * 2);
+    }
+    size_t index = ht->key_hash(key, ht->capacity);
+    int found_tomb = 0;
+    size_t h_tomb = 0;
+
+    while( (ht->slots[index].key != NULL && ht->key_cmp( ht->slots[index].key, key ) != 0) || ht->slots[index].tombstone == 1 ){
+
+        if(ht->slots[index].tombstone || !found_tomb ){
+            found_tomb = 1;
+            h_tomb = ht->key_hash(key, ht->capacity);
+        }
+    }
 
     return old_value;
 }
@@ -545,10 +553,18 @@ upo_ht_key_list_t upo_ht_linprob_keys(const upo_ht_linprob_t ht)
 
 void upo_ht_linprob_traverse(const upo_ht_linprob_t ht, upo_ht_visitor_t visit, void *visit_context)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+   
+
+
+   /*
+   
+   TRAVERSE VISTA A LEZIONE
+   
+   */
+
+
+
+
 }
 
 
