@@ -32,8 +32,7 @@
 /*** EXERCISE #1 - BEGIN of HASH TABLE with SEPARATE CHAINING ***/
 
 
-upo_ht_sepchain_t upo_ht_sepchain_create(size_t m, upo_ht_hasher_t key_hash, upo_ht_comparator_t key_cmp)
-{
+upo_ht_sepchain_t upo_ht_sepchain_create(size_t m, upo_ht_hasher_t key_hash, upo_ht_comparator_t key_cmp){
     upo_ht_sepchain_t ht = NULL;
     size_t i = 0;
 
@@ -79,8 +78,7 @@ upo_ht_sepchain_t upo_ht_sepchain_create(size_t m, upo_ht_hasher_t key_hash, upo
     return ht;
 }
 
-void upo_ht_sepchain_destroy(upo_ht_sepchain_t ht, int destroy_data)
-{
+void upo_ht_sepchain_destroy(upo_ht_sepchain_t ht, int destroy_data){
     if (ht != NULL)
     {
         upo_ht_sepchain_clear(ht, destroy_data);
@@ -89,8 +87,7 @@ void upo_ht_sepchain_destroy(upo_ht_sepchain_t ht, int destroy_data)
     }
 }
 
-void upo_ht_sepchain_clear(upo_ht_sepchain_t ht, int destroy_data)
-{
+void upo_ht_sepchain_clear(upo_ht_sepchain_t ht, int destroy_data){
     if (ht != NULL && ht->slots != NULL)
     {
         size_t i = 0;
@@ -121,7 +118,6 @@ void upo_ht_sepchain_clear(upo_ht_sepchain_t ht, int destroy_data)
     }
 }
 
-
 upo_ht_sepchain_list_node_t* createNode(){
     upo_ht_sepchain_list_node_t* node = malloc(sizeof(upo_ht_key_list_node_t));
     node->key == NULL;
@@ -130,8 +126,7 @@ upo_ht_sepchain_list_node_t* createNode(){
 }
 
 //inserisce/sostituisce il valore v identificato da k int e restituisce il valore precedente se presente
-void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
-{
+void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value){
 
     if (ht == NULL || key == NULL || value == NULL){
             return NULL;
@@ -163,8 +158,7 @@ void* upo_ht_sepchain_put(upo_ht_sepchain_t ht, void *key, void *value)
     return old_value;
 }
 
-void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value)
-{
+void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value){
     if(ht == NULL) return;
   
     //nella chiave del nodo metto l'hash key che cerco 
@@ -193,8 +187,7 @@ void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value)
 }
 
 //restituisce il valore v identificato da k in t
-void* upo_ht_sepchain_get(const upo_ht_sepchain_t ht, const void *key)
-{
+void* upo_ht_sepchain_get(const upo_ht_sepchain_t ht, const void *key){
        if(ht == NULL || ht->slots == NULL ||key == NULL) return NULL;
 
     size_t index = ht->key_hash(key, ht->capacity);
@@ -213,8 +206,7 @@ void* upo_ht_sepchain_get(const upo_ht_sepchain_t ht, const void *key)
 
 }
 
-int upo_ht_sepchain_contains(const upo_ht_sepchain_t ht, const void *key)
-{
+int upo_ht_sepchain_contains(const upo_ht_sepchain_t ht, const void *key){
     if(ht == NULL || ht->slots == NULL) return 0;
 
     size_t index = ht->key_hash(key, ht->capacity);
@@ -231,8 +223,7 @@ int upo_ht_sepchain_contains(const upo_ht_sepchain_t ht, const void *key)
     
 }
 
-void upo_ht_sepchain_delete(upo_ht_sepchain_t ht, const void *key, int destroy_data)
-{
+void upo_ht_sepchain_delete(upo_ht_sepchain_t ht, const void *key, int destroy_data){
     if(ht == NULL || key == NULL || ht->slots == NULL) return;
 
     size_t index = ht->key_hash(key, ht->capacity);
@@ -258,8 +249,7 @@ void upo_ht_sepchain_delete(upo_ht_sepchain_t ht, const void *key, int destroy_d
     }
 }
 
-size_t upo_ht_sepchain_size(const upo_ht_sepchain_t ht)
-{
+size_t upo_ht_sepchain_size(const upo_ht_sepchain_t ht){
     //se l'hashmap non esiste ritorno 0
     if (ht == NULL) return 0;
     
@@ -280,28 +270,23 @@ size_t upo_ht_sepchain_size(const upo_ht_sepchain_t ht)
 
 }
 
-int upo_ht_sepchain_is_empty(const upo_ht_sepchain_t ht)
-{
+int upo_ht_sepchain_is_empty(const upo_ht_sepchain_t ht){
    return upo_ht_sepchain_size(ht) == 0 ? 1 : 0; 
 }
 
-size_t upo_ht_sepchain_capacity(const upo_ht_sepchain_t ht)
-{
+size_t upo_ht_sepchain_capacity(const upo_ht_sepchain_t ht){
     return (ht != NULL) ? ht->capacity : 0;
 }
 
-double upo_ht_sepchain_load_factor(const upo_ht_sepchain_t ht)
-{
+double upo_ht_sepchain_load_factor(const upo_ht_sepchain_t ht){
     return upo_ht_sepchain_size(ht) / (double) upo_ht_sepchain_capacity(ht);
 }
 
-upo_ht_comparator_t upo_ht_sepchain_get_comparator(const upo_ht_sepchain_t ht)
-{
+upo_ht_comparator_t upo_ht_sepchain_get_comparator(const upo_ht_sepchain_t ht){
     return ht->key_cmp;
 }
 
-upo_ht_hasher_t upo_ht_sepchain_get_hasher(const upo_ht_sepchain_t ht)
-{
+upo_ht_hasher_t upo_ht_sepchain_get_hasher(const upo_ht_sepchain_t ht){
     return ht->key_hash;
 }
 
@@ -309,8 +294,7 @@ upo_ht_hasher_t upo_ht_sepchain_get_hasher(const upo_ht_sepchain_t ht)
 
 /*** EXERCISE #2 - BEGIN of HASH TABLE with LINEAR PROBING ***/
 
-upo_ht_linprob_t upo_ht_linprob_create(size_t m, upo_ht_hasher_t key_hash, upo_ht_comparator_t key_cmp)
-{
+upo_ht_linprob_t upo_ht_linprob_create(size_t m, upo_ht_hasher_t key_hash, upo_ht_comparator_t key_cmp){
     upo_ht_linprob_t ht = NULL;
     size_t i = 0;
 
@@ -358,8 +342,7 @@ upo_ht_linprob_t upo_ht_linprob_create(size_t m, upo_ht_hasher_t key_hash, upo_h
     return ht;
 }
 
-void upo_ht_linprob_destroy(upo_ht_linprob_t ht, int destroy_data)
-{
+void upo_ht_linprob_destroy(upo_ht_linprob_t ht, int destroy_data){
     if (ht != NULL)
     {
         upo_ht_linprob_clear(ht, destroy_data);
@@ -368,8 +351,7 @@ void upo_ht_linprob_destroy(upo_ht_linprob_t ht, int destroy_data)
     }
 }
 
-void upo_ht_linprob_clear(upo_ht_linprob_t ht, int destroy_data)
-{
+void upo_ht_linprob_clear(upo_ht_linprob_t ht, int destroy_data){
     if (ht != NULL && ht->slots != NULL)
     {
         size_t i = 0;
@@ -393,25 +375,48 @@ void upo_ht_linprob_clear(upo_ht_linprob_t ht, int destroy_data)
     }
 }
 
-void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value)
-{
+
+//inserisce una coppia chiave valore nell'hashmap oppure la sostituisce se la chiave è già presente
+void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
+
     void *old_value = NULL;
 
     //controllo se c'è abbastanza spazio nell'hashmap
     if( upo_ht_linprob_load_factor(ht) >=  0.5 ){
         upo_ht_linprob_resize(ht, ht->capacity * 2);
     }
+
+    //calcolo l'indice in cui inserire la coppia
     size_t index = ht->key_hash(key, ht->capacity);
+    
+    //imposto un flag per capire se ho trovato una tombstone
     int found_tomb = 0;
+
+    //se trovo una tombstone salvo l'indice in cui l'ho trovata
     size_t h_tomb = 0;
 
-    while( (ht->slots[index].key != NULL && ht->key_cmp( ht->slots[index].key, key ) != 0) || ht->slots[index].tombstone == 1 ){
+    //scorro l'hashmap finchè la chiave nello slot non è null e se la chiave è diversa da quella che sto cercando OPPURE se trovo una tombstone
+    while( (ht->slots[index].key != NULL && ht->key_cmp( ht->slots[index].key, key ) != 0) || ht->slots[index].tombstone ){
 
-        if(ht->slots[index].tombstone || !found_tomb ){
+        if(ht->slots[index].tombstone && !found_tomb ){
             found_tomb = 1;
-            h_tomb = ht->key_hash(key, ht->capacity);
+            h_tomb = index;
         }
+        index = (index + 1) % ht->capacity;
     }
+    
+    if( ht->slots[index].key == NULL ){
+
+        if(found_tomb){
+            index = h_tomb;
+        }
+
+        ht->slots[index].key = key;
+        ht->slots[index].value = value;
+        ht->size++;
+    }
+h
+
 
     return old_value;
 }
