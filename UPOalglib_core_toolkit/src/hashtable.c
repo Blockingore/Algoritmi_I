@@ -183,6 +183,11 @@ void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value){
         //poi dico che la nuova testa della lista è il mio nodo
         ht->slots[index].head = node;
         ht->size++;
+
+
+
+
+
     }else return;
 }
 

@@ -533,28 +533,24 @@ int isLeaf(upo_bst_node_t* node){
     }
 }
 
-void* max(void* a, void* b){
-
-    if(a > b) return a;
-    else return b;
-
-    return a < b ? b : a; 
+size_t max(size_t a, size_t b) {
+    return (a > b) ? a : b;
 }
 
-size_t height_imlp(upo_bst_node_t* node, size_t* height){
+size_t height_imlp(upo_bst_node_t* node){
     
     if(node == NULL || isLeaf(node)){
         return 0;
     }
 
-    return 1 + max(height_imlp(node->left, height), height_imlp(node->right, height));
+    return 1 + max(height_imlp(node->left), height_imlp(node->right));
 
 }
 
 size_t upo_bst_height(const upo_bst_t tree)
 {
     size_t height = 0;
-    height = height_imlp(tree->root, &height);
+    height = height_imlp(tree->root);
 
     return height;
 
@@ -629,14 +625,14 @@ void* upo_bst_max(const upo_bst_t tree)
 
 void upo_bst_delete_min(upo_bst_t tree, int destroy_data)
 {
-    if(upo_bst_is_empty(tree)) return NULL;
+    if(upo_bst_is_empty(tree)) return;
     upo_bst_delete(tree, upo_bst_min(tree) , destroy_data);
     return;
 }
 
 void upo_bst_delete_max(upo_bst_t tree, int destroy_data)
 {
-    if(upo_bst_is_empty(tree)) return NULL;
+    if(upo_bst_is_empty(tree)) return;
     upo_bst_delete(tree, upo_bst_max(tree) , destroy_data);    
     return;
 }
