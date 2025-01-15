@@ -386,9 +386,11 @@ void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
 
     void *old_value = NULL;
 
+     if(upo_ht_linprob_is_empty(ht))return NULL;
+
     //controllo se c'è abbastanza spazio nell'hashmap
     if( upo_ht_linprob_load_factor(ht) >=  0.5 ){
-        upo_ht_linprob_resize(ht, ht->capacity * 2);
+        upo_ht_linprob_resize(key, ht->capacity * 2);
     }
 
     //calcolo l'indice in cui inserire la coppia
@@ -403,6 +405,7 @@ void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
     //scorro l'hashmap finchè la chiave nello slot non è null e se la chiave è diversa da quella che sto cercando OPPURE se trovo una tombstone
     while( (ht->slots[index].key != NULL && ht->key_cmp( ht->slots[index].key, key ) != 0) || ht->slots[index].tombstone ){
 
+        //se trovo la prima tombstone la salvo
         if(ht->slots[index].tombstone && !found_tomb ){
             found_tomb = 1;
             h_tomb = index;
@@ -410,60 +413,143 @@ void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
         index = (index + 1) % ht->capacity;
     }
     
-    if( ht->slots[index].key == NULL ){
+    //se sono uscito dal while trovando uno spazio vuoto:
+    //1) se ho trovato una tombstone prima allora inserisco la coppia in quella posizione
+    //2) altrimenti inserisco la coppia nello spazio vuoto
 
+    if( ht->slots[index].key == NULL ){
         if(found_tomb){
             index = h_tomb;
         }
 
         ht->slots[index].key = key;
         ht->slots[index].value = value;
+        
         ht->size++;
     }
-
-
+    else{
+        old_value = ht->slots[index].value;
+        ht->slots[index].value = value;
+    }
 
     return old_value;
 }
 
-void upo_ht_linprob_insert(upo_ht_linprob_t ht, void *key, void *value)
-{
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+void upo_ht_linprob_insert(upo_ht_linprob_t ht, void *key, void *value){
+
+    if(upo_ht_linprob_is_empty(ht)) return;
+
+    if(upo_ht_linprob_load_factor(ht) >= 0.5){
+        upo_ht_linprob_resize(key, ht->capacity * 2);
+    }
+
+    size_t index = ht->key_hash(key, ht->capacity);
+    int found_tomb = 0;
+    size_t h_tomb = 0;
+
+    while(ht->key_cmp( ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+        if(ht->slots[index].tombstone && !found_tomb){
+            found_tomb = 1;
+            h_tomb = index;
+        }
+        
+        index = (index + 1) % ht->capacity;
+    }
+
+    if(ht->slots[index].key == NULL){
+        if(found_tomb){
+            index = h_tomb;
+        }
+        ht->slots[index].key = key;
+        ht->slots[index].value = value;
+        ht->slots[index].tombstone = 0;
+        ht->size++;
+    }
+     
 }
 
 void* upo_ht_linprob_get(const upo_ht_linprob_t ht, const void *key)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+
+ if(upo_ht_linprob_is_empty(ht)) return NULL;
+    if(upo_ht_linprob_load_factor(ht) <= 0.5)
+        upo_ht_linprob_resize(ht,ht->capacity * 2);
+
+    size_t index = ht->key_hash(key, ht->capacity);
+
+    while(ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+        index = (index + 1) % ht->capacity;
+    }
+
+    if( ht->key_cmp(ht->slots[index].key, key) == 0){
+        return ht->slots[index].key;
+    }else return NULL;
+
+
 }
 
 int upo_ht_linprob_contains(const upo_ht_linprob_t ht, const void *key)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+    if(upo_ht_linprob_is_empty(ht)) return 0;
+    if(upo_ht_linprob_load_factor(ht) <= 0.5)
+        upo_ht_linprob_resize(ht,ht->capacity);
+
+    size_t index = ht->key_hash(key, ht->capacity);
+
+    while(ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+        index = (index + 1) % ht->capacity;
+    }
+
+    if( ht->key_cmp(ht->slots[index].key, key) == 0){
+        return 1;
+    }else return 0;
+
 }
 
 void upo_ht_linprob_delete(upo_ht_linprob_t ht, const void *key, int destroy_data)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+    if(upo_ht_linprob_is_empty(ht))return;
+
+    if(upo_ht_linprob_load_factor(ht) <= 0.5){
+        upo_ht_linprob_resize(ht, ht->capacity * 2);
+    }
+
+    size_t index = ht->key_hash(key, ht->capacity);
+    
+    while(ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone){
+        index = (index + 1) % ht->capacity;
+    }
+
+    if(ht->slots[index].key != NULL){
+        if(destroy_data){
+            free(ht->slots[index].key);
+            free(ht->slots[index].value);
+        } else {
+            ht->slots[index].key = NULL;
+            ht->slots[index].value = NULL;
+        }
+        ht->slots[index].tombstone = 1;
+    }
+
+    if(upo_ht_linprob_load_factor(ht) <= 0.125){
+        upo_ht_linprob_resize(ht, ht->capacity / 2);
+    }
+
 }
 
 size_t upo_ht_linprob_size(const upo_ht_linprob_t ht)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+    if(ht == NULL || ht->slots == NULL) return 0;
+
+    size_t size = 0;
+
+    for(size_t i = 0; i < ht->capacity; i++){
+        if(ht->slots[i].key != NULL || ht->slots[i].tombstone){
+            size++;
+        }
+    }
+
+    return size;
 }
 
 int upo_ht_linprob_is_empty(const upo_ht_linprob_t ht)
