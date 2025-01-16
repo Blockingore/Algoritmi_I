@@ -662,7 +662,6 @@ void upo_ht_sepchain_traverse(const upo_ht_sepchain_t ht, upo_ht_visitor_t visit
 
 upo_ht_key_list_t upo_ht_linprob_keys(const upo_ht_linprob_t ht)
 {
-            printf("\n----------\n");
     if(upo_ht_linprob_is_empty(ht)) return NULL;
 
     upo_ht_key_list_t keyList = NULL;
@@ -670,7 +669,7 @@ upo_ht_key_list_t upo_ht_linprob_keys(const upo_ht_linprob_t ht)
     for(size_t i = 0; i<ht->capacity; i++){
         if(ht->slots[i].key != NULL){
             upo_ht_key_list_t foundKey = malloc(sizeof(upo_ht_key_list_t));
-            
+            foundKey->key = ht->slots[i].key;
             foundKey->next = keyList;
             keyList = foundKey;
         }
@@ -683,8 +682,9 @@ void upo_ht_linprob_traverse(const upo_ht_linprob_t ht, upo_ht_visitor_t visit, 
    if(upo_ht_linprob_is_empty(ht)) return;
 
    for(size_t i = 0; i<ht->capacity; i++){
-        while(ht->slots[i].key != NULL){
+        if(ht->slots[i].key != NULL){
             visit(ht->slots[i].key, ht->slots[i].value, visit_context);
+            
         }
    }
    return;
