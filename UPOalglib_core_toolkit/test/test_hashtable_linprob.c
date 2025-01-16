@@ -138,7 +138,6 @@ void test_put_get_contains_delete()
 
         assert( value != NULL );
         assert( *value == values_upd[i] );
-
         int found = 0;
 
         found = upo_ht_linprob_contains(ht, &keys1[i]);

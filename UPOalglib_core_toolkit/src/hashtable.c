@@ -380,17 +380,16 @@ void upo_ht_linprob_clear(upo_ht_linprob_t ht, int destroy_data){
     }
 }
 
-
 //inserisce una coppia chiave valore nell'hashmap oppure la sostituisce se la chiave è già presente
 void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
 
     void *old_value = NULL;
 
-     if(upo_ht_linprob_is_empty(ht))return NULL;
+     if(ht == NULL || ht->slots == NULL)return NULL;
 
     //controllo se c'è abbastanza spazio nell'hashmap
     if( upo_ht_linprob_load_factor(ht) >=  0.5 ){
-        upo_ht_linprob_resize(key, ht->capacity * 2);
+        upo_ht_linprob_resize(ht, upo_ht_linprob_capacity(ht) * 2);
     }
 
     //calcolo l'indice in cui inserire la coppia
@@ -418,15 +417,16 @@ void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
     //2) altrimenti inserisco la coppia nello spazio vuoto
 
     if( ht->slots[index].key == NULL ){
+
         if(found_tomb){
             index = h_tomb;
         }
-
         ht->slots[index].key = key;
         ht->slots[index].value = value;
-        
+        ht->slots[index].tombstone = 0;   
         ht->size++;
     }
+    //altrimenti se ho trovato la chiave sostituisco il valore
     else{
         old_value = ht->slots[index].value;
         ht->slots[index].value = value;
@@ -436,27 +436,29 @@ void* upo_ht_linprob_put(upo_ht_linprob_t ht, void *key, void *value){
 }
 
 void upo_ht_linprob_insert(upo_ht_linprob_t ht, void *key, void *value){
-
-    if(upo_ht_linprob_is_empty(ht)) return;
-
+    //controllo che h'hashmap non sia NULL
+    if(ht == NULL || ht->slots == NULL) return;
+    //controllo anche lo spazio per l'inserimento
     if(upo_ht_linprob_load_factor(ht) >= 0.5){
-        upo_ht_linprob_resize(key, ht->capacity * 2);
+        upo_ht_linprob_resize(ht, upo_ht_linprob_capacity(ht) * 2);
     }
 
     size_t index = ht->key_hash(key, ht->capacity);
     int found_tomb = 0;
     size_t h_tomb = 0;
-
-    while(ht->key_cmp( ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+    //Scorro finche la chiave nello slot è diversa da null ed è diversa da quella che cerco io oppure se trovo una tombstone
+    while( ht->slots[index].key != NULL && ht->key_cmp( ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+        //se trovo una tombstone la salvo come spazio utile per l'inserimento
         if(ht->slots[index].tombstone && !found_tomb){
             found_tomb = 1;
             h_tomb = index;
         }
-        
+        //vado avanti con l'index
         index = (index + 1) % ht->capacity;
     }
-
+    //uscito dal while se ho trovato uno spazio vuoto 
     if(ht->slots[index].key == NULL){
+        // ricordo se ho trovato una tombstone prima altrimenti inserisco i miei dati nello slot vuoto
         if(found_tomb){
             index = h_tomb;
         }
@@ -468,39 +470,36 @@ void upo_ht_linprob_insert(upo_ht_linprob_t ht, void *key, void *value){
      
 }
 
-void* upo_ht_linprob_get(const upo_ht_linprob_t ht, const void *key)
-{
-
- if(upo_ht_linprob_is_empty(ht)) return NULL;
-    if(upo_ht_linprob_load_factor(ht) <= 0.5)
-        upo_ht_linprob_resize(ht,ht->capacity * 2);
-
+void* upo_ht_linprob_get(const upo_ht_linprob_t ht, const void *key){
+    //controllo solo che l'hasmap non sia vuoto
+    if(upo_ht_linprob_is_empty(ht))return NULL;
+    //faccio hash della chiave che cerco
     size_t index = ht->key_hash(key, ht->capacity);
-
-    while(ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+    //cerco finchè non trovo uno spazio vuoto, non trovo la chiave oppure la tombstone è true
+    while(ht->slots[index].key != NULL && ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
         index = (index + 1) % ht->capacity;
     }
 
-    if( ht->key_cmp(ht->slots[index].key, key) == 0){
-        return ht->slots[index].key;
+    //se non mi trovo in uno slot vuoto ritorno la chiave
+    if( ht->slots[index].key != NULL){
+        return ht->slots[index].value;
     }else return NULL;
 
 
 }
 
-int upo_ht_linprob_contains(const upo_ht_linprob_t ht, const void *key)
-{
-    if(upo_ht_linprob_is_empty(ht)) return 0;
-    if(upo_ht_linprob_load_factor(ht) <= 0.5)
-        upo_ht_linprob_resize(ht,ht->capacity);
+int upo_ht_linprob_contains(const upo_ht_linprob_t ht, const void *key){
 
+    if(upo_ht_linprob_is_empty(ht)) return 0;
+    
     size_t index = ht->key_hash(key, ht->capacity);
 
-    while(ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone ) {
+    //cerco sempre finche non trovo uno spazio vuoto, non trovo la chiave e cerco e scorro anche se trovo una tombstone
+    while((ht->slots[index].key != NULL && ht->key_cmp(ht->slots[index].key, key)) != 0 || ht->slots[index].tombstone ) {
         index = (index + 1) % ht->capacity;
     }
 
-    if( ht->key_cmp(ht->slots[index].key, key) == 0){
+    if( ht->slots[index].key != NULL){
         return 1;
     }else return 0;
 
@@ -510,41 +509,40 @@ void upo_ht_linprob_delete(upo_ht_linprob_t ht, const void *key, int destroy_dat
 {
     if(upo_ht_linprob_is_empty(ht))return;
 
-    if(upo_ht_linprob_load_factor(ht) <= 0.5){
-        upo_ht_linprob_resize(ht, ht->capacity * 2);
-    }
-
     size_t index = ht->key_hash(key, ht->capacity);
-    
-    while(ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone){
+    //cerco finche non trovo uno spazio vuoto oppure lo slot con la chiave che voglio eliminare e scorro anche se trovo una tombstone
+    while(ht->slots[index].key != NULL && ht->key_cmp(ht->slots[index].key, key) != 0 || ht->slots[index].tombstone){
         index = (index + 1) % ht->capacity;
     }
 
-    if(ht->slots[index].key != NULL){
-        if(destroy_data){
+    //se ho trovato la chiave che cerco
+    if(ht->slots[index].key != NULL && ht->key_cmp(ht->slots[index].key, key) == 0 ){
+      
+       if(destroy_data){
             free(ht->slots[index].key);
             free(ht->slots[index].value);
         } else {
+      
             ht->slots[index].key = NULL;
             ht->slots[index].value = NULL;
         }
+        
         ht->slots[index].tombstone = 1;
+        
+        if(upo_ht_linprob_load_factor(ht) <= 0.125){
+            upo_ht_linprob_resize(ht, ht->capacity / 2);
+        }
     }
-
-    if(upo_ht_linprob_load_factor(ht) <= 0.125){
-        upo_ht_linprob_resize(ht, ht->capacity / 2);
-    }
-
 }
 
 size_t upo_ht_linprob_size(const upo_ht_linprob_t ht)
 {
-    if(ht == NULL || ht->slots == NULL) return 0;
+    if(ht == NULL ) return 0;
 
     size_t size = 0;
 
     for(size_t i = 0; i < ht->capacity; i++){
-        if(ht->slots[i].key != NULL || ht->slots[i].tombstone){
+        if(ht->slots[i].key != NULL && !ht->slots[i].tombstone){
             size++;
         }
     }
@@ -625,42 +623,71 @@ void upo_ht_linprob_resize(upo_ht_linprob_t ht, size_t n)
 
 upo_ht_key_list_t upo_ht_sepchain_keys(const upo_ht_sepchain_t ht)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+            printf("\n----------\n");
+    if(upo_ht_sepchain_is_empty(ht)) return NULL;
+
+    upo_ht_key_list_t keyList = NULL;
+
+    for(size_t i = 0; i<ht->capacity; i++){
+
+        upo_ht_sepchain_list_node_t* nodeList = ht->slots[i].head;
+        
+        while(nodeList != NULL){
+            
+            upo_ht_key_list_node_t* keyNodeList = malloc(sizeof(upo_ht_key_list_node_t));
+            
+            keyNodeList->key = nodeList->key;
+            keyNodeList->next = keyList;
+            keyList = keyNodeList;
+
+            nodeList = nodeList->next;
+        }
+    }
+    return keyList;
 }
 
 void upo_ht_sepchain_traverse(const upo_ht_sepchain_t ht, upo_ht_visitor_t visit, void *visit_context)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+    if(upo_ht_sepchain_is_empty(ht)) return;
+
+    for(size_t i = 0; i<ht->capacity; i++){
+    upo_ht_sepchain_list_node_t* node = ht->slots[i].head;
+        while(node != NULL){
+            visit(ht->slots[i].head->key, ht->slots[i].head->value, visit_context);
+            node = node->next;
+        }
+    }
+    return;
 }
 
 upo_ht_key_list_t upo_ht_linprob_keys(const upo_ht_linprob_t ht)
 {
-    /* TO STUDENTS:
-     *  Remove the following two lines and put here your implementation. */
-    fprintf(stderr, "To be implemented!\n");
-    abort();
+            printf("\n----------\n");
+    if(upo_ht_linprob_is_empty(ht)) return NULL;
+
+    upo_ht_key_list_t keyList = NULL;
+
+    for(size_t i = 0; i<ht->capacity; i++){
+        if(ht->slots[i].key != NULL){
+            upo_ht_key_list_t foundKey = malloc(sizeof(upo_ht_key_list_t));
+            
+            foundKey->next = keyList;
+            keyList = foundKey;
+        }
+    }
+    return keyList;
 }
 
 void upo_ht_linprob_traverse(const upo_ht_linprob_t ht, upo_ht_visitor_t visit, void *visit_context)
 {
-   
+   if(upo_ht_linprob_is_empty(ht)) return;
 
-
-   /*
-   
-   TRAVERSE VISTA A LEZIONE
-   
-   */
-
-
-
-
+   for(size_t i = 0; i<ht->capacity; i++){
+        while(ht->slots[i].key != NULL){
+            visit(ht->slots[i].key, ht->slots[i].value, visit_context);
+        }
+   }
+   return;
 }
 
 
