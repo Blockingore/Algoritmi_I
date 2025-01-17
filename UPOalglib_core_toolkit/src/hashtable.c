@@ -623,7 +623,6 @@ void upo_ht_linprob_resize(upo_ht_linprob_t ht, size_t n)
 
 upo_ht_key_list_t upo_ht_sepchain_keys(const upo_ht_sepchain_t ht)
 {
-            printf("\n----------\n");
     if(upo_ht_sepchain_is_empty(ht)) return NULL;
 
     upo_ht_key_list_t keyList = NULL;
