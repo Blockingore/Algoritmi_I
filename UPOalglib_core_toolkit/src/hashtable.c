@@ -119,7 +119,7 @@ void upo_ht_sepchain_clear(upo_ht_sepchain_t ht, int destroy_data){
 }
 
 upo_ht_sepchain_list_node_t* createNode(){
-    upo_ht_sepchain_list_node_t* node = malloc(sizeof(upo_ht_key_list_node_t));
+    upo_ht_sepchain_list_node_t* node = malloc(sizeof(upo_ht_sepchain_list_node_t));
     node->key == NULL;
     node->next == NULL;
     return node;
@@ -183,10 +183,6 @@ void upo_ht_sepchain_insert(upo_ht_sepchain_t ht, void *key, void *value){
         //poi dico che la nuova testa della lista è il mio nodo
         ht->slots[index].head = node;
         ht->size++;
-
-
-
-
 
     }else return;
 }
