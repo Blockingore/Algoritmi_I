@@ -768,27 +768,21 @@ upo_bst_key_list_t upo_bst_keys(const upo_bst_t tree)
 
 int bst_impl(const upo_bst_t tree, const void *min_key, const void *max_key, upo_bst_node_t* node){
    
-    if(node != NULL){
+    if(node == NULL) return 1;
 
-
-    bst_impl(tree, node->left, node->key, node->left);
-
-    if(tree->key_cmp(node->key, min_key) < 0 || tree->key_cmp(node->key, max_key) > 0 ){
+    if(tree->key_cmp(node->key, min_key) <= 0 || tree->key_cmp(node->key, max_key) >= 0 ){
        return 0; 
     }
-    return bst_impl(tree, node->key, max_key, node->right) && bst_impl(tree, min_key, node->key, node->right);
-    
-    } 
 
-    return 1;
+    return bst_impl(tree, min_key, node->key, node->left) && bst_impl(tree, node->key, max_key, node->right);
 }
 
 
 int upo_bst_is_bst(const upo_bst_t tree, const void *min_key, const void *max_key)
 {
-    if(upo_bst_is_empty(tree)) return 0;
+    if(upo_bst_is_empty(tree)) return 1;
 
-    return bst_impl(tree, min_key, max_key, tree);
+    return bst_impl(tree, min_key, max_key, tree->root);
 }
 
 
